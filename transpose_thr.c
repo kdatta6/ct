@@ -4,6 +4,7 @@
 
 #include "transpose_thr.h"
 
+#if defined ROW_NAIVE
 void *rowThreadedTranspose_naive(void *t) {
   long tid;
   int num_large_chunks, small_chunk_size, large_chunk_size;
@@ -39,7 +40,8 @@ void *rowThreadedTranspose_naive(void *t) {
   
   pthread_exit((void*) tid);
 }
-
+#endif
+#if defined COL_NAIVE
 void *colThreadedTranspose_naive(void *t) {
   long tid;
   int num_large_chunks, small_chunk_size, large_chunk_size;
@@ -75,6 +77,7 @@ void *colThreadedTranspose_naive(void *t) {
   
   pthread_exit((void*) tid);
 }
+#endif
 
 #if defined BROWS && defined BCOLS
 // this code only works if NROWS is a multiple of BROWS and NCOLS is a multiple of BCOLS

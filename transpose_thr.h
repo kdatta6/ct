@@ -13,8 +13,12 @@
 double* restrict A;
 double* restrict B;
 
+#if defined ROW_NAIVE
 void *rowThreadedTranspose_naive(void *t);
+#endif
+#if defined COL_NAIVE
 void *colThreadedTranspose_naive(void *t);
+#endif
 
 #if defined BROWS && defined BCOLS
 void blockedTranspose(double * restrict A, double * restrict B);

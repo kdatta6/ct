@@ -86,9 +86,13 @@ int main(int argc, char **argv) {
   initArray(C, 20000, 20000);
 #endif
 
-  // try rowThreadedTranspose_naive()
   for (t=0; t<NTHREADS; t++) {
+#if defined ROW_NAIVE
     rc = pthread_create(&threads[t], &attr, &rowThreadedTranspose_naive, (void *)t);
+#endif
+#if defined COL_NAIVE
+    rc = pthread_create(&threads[t], &attr, &colThreadedTranspose_naive, (void *)t);
+#endif
     if (rc) {
       printf("ERROR; return code from pthread_create() is %d\n", rc);
       exit(-1);
