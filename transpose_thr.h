@@ -15,8 +15,7 @@ double* restrict B;
 
 #if defined ROW_NAIVE
 void *rowThreadedTranspose_naive(void *t);
-#endif
-#if defined COL_NAIVE
+#elif defined COL_NAIVE
 void *colThreadedTranspose_naive(void *t);
 #endif
 

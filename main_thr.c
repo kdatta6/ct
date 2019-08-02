@@ -89,8 +89,7 @@ int main(int argc, char **argv) {
   for (t=0; t<NTHREADS; t++) {
 #if defined ROW_NAIVE
     rc = pthread_create(&threads[t], &attr, &rowThreadedTranspose_naive, (void *)t);
-#endif
-#if defined COL_NAIVE
+#elif defined COL_NAIVE
     rc = pthread_create(&threads[t], &attr, &colThreadedTranspose_naive, (void *)t);
 #endif
     if (rc) {

@@ -40,8 +40,7 @@ void *rowThreadedTranspose_naive(void *t) {
   
   pthread_exit((void*) tid);
 }
-#endif
-#if defined COL_NAIVE
+#elif defined COL_NAIVE
 void *colThreadedTranspose_naive(void *t) {
   long tid;
   int num_large_chunks, small_chunk_size, large_chunk_size;
