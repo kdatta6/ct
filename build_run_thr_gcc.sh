@@ -7,7 +7,7 @@ AVXFLAGS="-vec-threshold0 -xCORE-AVX512 -qopt-zmm-usage=high"
 
 # only cold cache numbers are collected because L3 cache is too small to get good warm cache results
 
-NTHREADS=3
+NTHREADS=2
 
 for NROWS in 18
 do
@@ -19,7 +19,7 @@ do
 	${CC} ${CFLAGS} ${THRFLAGS} -o run_${NROWS}x${NCOLS}_naive main_thr.o transpose_thr.o
 
 	# run with one thread per core
-	numactl -C 0-${NTHREADS} -l ./run_${NROWS}x${NCOLS}_naive > ./results_${NROWS}x${NCOLS}_naive.txt
+	numactl -C 0-"$((${NTHREADS}-1))" -l ./run_${NROWS}x${NCOLS}_naive > ./results_${NROWS}x${NCOLS}_naive.txt
 
 	# clean up
 	rm -rf run_${NROWS}x${NCOLS}_naive main_thr.o transpose_thr.o *~
