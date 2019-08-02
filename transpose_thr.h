@@ -10,8 +10,8 @@
 #define NTHREADS 1
 #endif
 
-double* restrict A;
-double* restrict B;
+DTYPE* restrict A;
+DTYPE* restrict B;
 
 #if defined ROW_NAIVE
 void *rowThreadedTranspose_naive(void *t);
@@ -20,5 +20,5 @@ void *colThreadedTranspose_naive(void *t);
 #endif
 
 #if defined BROWS && defined BCOLS
-void blockedTranspose(double * restrict A, double * restrict B);
+void blockedTranspose(DTYPE * restrict A, DTYPE * restrict B);
 #endif

@@ -7,7 +7,7 @@
 //#define CLEAR_L3_CACHE
 //#define PRINT_ARRAYS
 
-void initArray(double * restrict C, int nrows, int ncols) {
+void initArray(DTYPE * restrict C, int nrows, int ncols) {
   int i, j;
   for (i = 0; i < nrows; i++) {
     for (j = 0; j < ncols; j++) {
@@ -16,7 +16,7 @@ void initArray(double * restrict C, int nrows, int ncols) {
   }
 }
 
-void zeroArray(double * restrict C, int nrows, int ncols) {
+void zeroArray(DTYPE * restrict C, int nrows, int ncols) {
   int i, j;
   for (i = 0; i < nrows; i++) {
     for (j = 0; j < ncols; j++) {
@@ -26,7 +26,7 @@ void zeroArray(double * restrict C, int nrows, int ncols) {
 }
 
 #if defined PRINT_ARRAYS
-void printArray(double * restrict C, int nrows, int ncols) {
+void printArray(DTYPE * restrict C, int nrows, int ncols) {
   int i, j;
   for (i = 0; i < nrows; i++) {
     for (j = 0; j < ncols; j++) {
@@ -39,7 +39,7 @@ void printArray(double * restrict C, int nrows, int ncols) {
 
 #if defined CHECK_ARRAY
 // returns 1 if D is not a matrix of C, 0 otherwise
-int checkArray(double * restrict C, double * restrict D, int nrows, int ncols) {
+int checkArray(DTYPE * restrict C, DTYPE * restrict D, int nrows, int ncols) {
   int i, j;
   for (i = 0; i < nrows; i++) {
     for (j = 0; j < ncols; j++) {
@@ -54,7 +54,7 @@ int checkArray(double * restrict C, double * restrict D, int nrows, int ncols) {
 
 int main(int argc, char **argv) {
 #if defined CLEAR_L3_CACHE
-  double *C;
+  DTYPE *C;
 #endif
   pthread_t threads[NTHREADS];
   pthread_attr_t attr;
@@ -67,8 +67,8 @@ int main(int argc, char **argv) {
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   // allocate arrays
-  A = malloc(NROWS * NCOLS * sizeof(double));
-  B = malloc(NCOLS * NROWS * sizeof(double));
+  A = malloc(NROWS * NCOLS * sizeof(DTYPE));
+  B = malloc(NCOLS * NROWS * sizeof(DTYPE));
 
   // init A
   initArray(A, NROWS, NCOLS);
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 #endif
 
 #if defined CLEAR_L3_CACHE
-  C = malloc(20000 * 20000 *sizeof(double));
+  C = malloc(20000 * 20000 *sizeof(DTYPE));
 
   initArray(C, 20000, 20000);
 #endif

@@ -80,7 +80,7 @@ void *colThreadedTranspose_naive(void *t) {
 
 #if defined BROWS && defined BCOLS
 // this code only works if NROWS is a multiple of BROWS and NCOLS is a multiple of BCOLS
-void blockedTranspose(double* restrict A, double* restrict B) {
+void blockedTranspose(DTYPE* restrict A, DTYPE* restrict B) {
   int i, j, i_min, j_min;
   int num_row_blocks, num_col_blocks;
   int row_block_num, col_block_num;
