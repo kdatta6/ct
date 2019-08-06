@@ -53,10 +53,12 @@ int checkArray(DTYPE * restrict C, DTYPE * restrict D, int nrows, int ncols) {
 #endif
 
 int main(int argc, char **argv) {
+  DTYPE *A, *B;
 #if defined CLEAR_L3_CACHE
   DTYPE *C;
 #endif
   pthread_t threads[NTHREADS];
+  struct argStruct *argStructs;
   pthread_attr_t attr;
   long t;
   int rc;
@@ -86,11 +88,17 @@ int main(int argc, char **argv) {
   initArray(C, 20000, 20000);
 #endif
 
+  argStructs = malloc(NTHREADS * sizeof(struct argStruct));
+
   for (t=0; t<NTHREADS; t++) {
+    (argStructs+t)->A = A;
+    (argStructs+t)->B = B;
+    (argStructs+t)->t = t;
+
 #if defined ROW_NAIVE
-    rc = pthread_create(&threads[t], &attr, &rowThreadedTranspose_naive, (void *)t);
+    rc = pthread_create(&threads[t], &attr, &rowThreadedTranspose_naive, (void *)(argStructs+t));
 #elif defined COL_NAIVE
-    rc = pthread_create(&threads[t], &attr, &colThreadedTranspose_naive, (void *)t);
+    rc = pthread_create(&threads[t], &attr, &colThreadedTranspose_naive, (void *)(argStructs+t));
 #endif
     if (rc) {
       printf("ERROR; return code from pthread_create() is %d\n", rc);

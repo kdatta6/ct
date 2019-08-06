@@ -10,8 +10,11 @@
 #define NTHREADS 1
 #endif
 
-DTYPE* restrict A;
-DTYPE* restrict B;
+struct argStruct {
+  DTYPE *A;
+  DTYPE *B;
+  long t;
+};
 
 #if defined ROW_NAIVE
 void *rowThreadedTranspose_naive(void *t);

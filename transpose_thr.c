@@ -5,13 +5,18 @@
 #include "transpose_thr.h"
 
 #if defined ROW_NAIVE
-void *rowThreadedTranspose_naive(void *t) {
+void *rowThreadedTranspose_naive(void *argStr) {
+  DTYPE * restrict A;
+  DTYPE * restrict B;
   long tid;
   int num_large_chunks, small_chunk_size, large_chunk_size;
   int i_min, i_max;
   int i, j;
 
-  tid = (long)t;
+  struct argStruct *my_argStr = (struct argStruct*)argStr;
+  A = (DTYPE *)(my_argStr->A);
+  B = (DTYPE *)(my_argStr->B);
+  tid = (long)(my_argStr->t);
 
   // divide the rows as evenly as possible among the threads
   num_large_chunks = NROWS % NTHREADS;
@@ -30,24 +35,27 @@ void *rowThreadedTranspose_naive(void *t) {
 #if defined PRINT_ARRAYS
   printf("In rowThreadedTranspose_naive(), tid = %ld, i_min = %d, i_max = %d\n", tid, i_min, i_max);
 #endif
-
   for (i = i_min; i < i_max; i++) {
     for (j = 0; j < NCOLS; j++) {
       B[j*NROWS + i] = A[i*NCOLS + j];
     }
   }  
-
   
   pthread_exit((void*) tid);
 }
 #elif defined COL_NAIVE
-void *colThreadedTranspose_naive(void *t) {
+void *colThreadedTranspose_naive(void *argStr) {
+  DTYPE * restrict A;
+  DTYPE * restrict B;
   long tid;
   int num_large_chunks, small_chunk_size, large_chunk_size;
   int j_min, j_max;
   int i, j;
 
-  tid = (long)t;
+  struct argStruct *my_argStr = (struct argStruct*)argStr;
+  A = (DTYPE *)(my_argStr->A);
+  B = (DTYPE *)(my_argStr->B);
+  tid = (long)(my_argStr->t);
 
   // divide the rows as evenly as possible among the threads
   num_large_chunks = NCOLS % NTHREADS;
@@ -71,8 +79,7 @@ void *colThreadedTranspose_naive(void *t) {
     for (j = j_min; j < j_max; j++) {
       B[j*NROWS + i] = A[i*NCOLS + j];
     }
-  }  
-
+  }
   
   pthread_exit((void*) tid);
 }
