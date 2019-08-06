@@ -10,11 +10,11 @@
 #define NTHREADS 1
 #endif
 
-struct argStruct {
+typedef struct arg {
   DTYPE *A;
   DTYPE *B;
   long t;
-};
+} threadArg;
 
 #if defined ROW_NAIVE
 void *rowThreadedTranspose_naive(void *t);
