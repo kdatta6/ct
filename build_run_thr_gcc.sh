@@ -5,8 +5,6 @@ CFLAGS="-O3 -Wall -std=c11"
 THRFLAGS="-pthread"
 AVXFLAGS="-vec-threshold0 -xCORE-AVX512 -qopt-zmm-usage=high"
 
-# only cold cache numbers are collected because L3 cache is too small to get good warm cache results
-
 CPPFLAGS=""
 CPPFLAGS+=" -DCHECK_ARRAY"
 #CPPFLAGS+=" -DCLEAR_L3_CACHE"
@@ -16,12 +14,12 @@ echo ${CPPFLAGS}
 DTYPE="double"
 NTHREADS=2
 
-for OPT in "ROW_NAIVE" "COL_NAIVE"
+for NROWS in 4096
 do
-    for NROWS in 4096
+    for NCOLS in 4096
     do
-        for NCOLS in 4096
-        do
+	for OPT in "ROW_NAIVE" "COL_NAIVE"
+	do
 	    PARAM_STR=${DTYPE}_${NROWS}x${NCOLS}_${NTHREADS}t_${OPT}
 	    echo ${PARAM_STR}
 
@@ -35,7 +33,7 @@ do
 	    numactl -C 0-"$((${NTHREADS}-1))" -l ./run_${PARAM_STR} > ./results_${PARAM_STR}.txt
 
 	    # clean up
-	    rm -rf run_${PARAM_STR} main_thr.o transpose_thr.o *~
+	    rm -rf run_${PARAM_STR} util.o transpose_thr.o main_thr.o *~
 	done
     done
 done

@@ -46,12 +46,12 @@ int main(int argc, char **argv) {
   gettimeofday(&t1, NULL);
 
   // transpose
-#if defined INTRINSICS
-  intrin8x8Transpose(A, B);
-#elif defined BROWS && defined BCOLS
+#if defined NAIVE
+  naiveTranspose(A, B);
+#elif defined BLOCKED
   blockedTranspose(A, B);
-#else
-  transpose(A, B);
+#elif defined INTRINSICS
+  intrin8x8Transpose(A, B);
 #endif
 
   // stop timer

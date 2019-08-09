@@ -84,33 +84,3 @@ void *colThreadedTranspose_naive(void *thrArg) {
   pthread_exit((void*) tid);
 }
 #endif
-
-#if defined BROWS && defined BCOLS
-// this code only works if NROWS is a multiple of BROWS and NCOLS is a multiple of BCOLS
-void blockedTranspose(DTYPE* restrict A, DTYPE* restrict B) {
-  int i, j, i_min, j_min;
-  int num_row_blocks, num_col_blocks;
-  int row_block_num, col_block_num;
-  int A_idx, B_idx;
-
-  num_row_blocks = NROWS / BROWS;
-  num_col_blocks = NCOLS / BCOLS;
-
-  // perform transpose over all blocks
-  for (row_block_num = 0; row_block_num < num_row_blocks; row_block_num++) {
-    for (col_block_num = 0; col_block_num < num_col_blocks; col_block_num++) {
-      i_min = row_block_num * BROWS;
-      j_min = col_block_num * BCOLS;
-
-      for (i = i_min; i < (i_min + BROWS); i++) {
-	A_idx = i * NCOLS + j_min;
-	B_idx = j_min * NROWS + i;
-	for (j = 0; j < BCOLS; j++) {
-	  B[B_idx] = A[A_idx++];
-	  B_idx += NROWS;
-	}
-      }
-    }
-  }
-}
-#endif

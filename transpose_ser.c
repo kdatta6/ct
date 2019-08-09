@@ -8,7 +8,44 @@
 
 #include "transpose_ser.h"
 
-#if defined INTRINSICS
+#if defined NAIVE
+void naiveTranspose(DTYPE* restrict A, DTYPE* restrict B) {
+  int i, j;
+  for (i = 0; i < NROWS; i++) {
+    for (j = 0; j < NCOLS; j++) {
+      B[j*NROWS + i] = A[i*NCOLS + j];
+    }
+  }
+}
+#elif BLOCKED
+// this code only works if NROWS is a multiple of BROWS and NCOLS is a multiple of BCOLS
+void blockedTranspose(DTYPE* restrict A, DTYPE* restrict B) {
+  int i, j, i_min, j_min;
+  int num_row_blocks, num_col_blocks;
+  int row_block_num, col_block_num;
+  int A_idx, B_idx;
+
+  num_row_blocks = NROWS / BROWS;
+  num_col_blocks = NCOLS / BCOLS;
+
+  // perform transpose over all blocks
+  for (row_block_num = 0; row_block_num < num_row_blocks; row_block_num++) {
+    for (col_block_num = 0; col_block_num < num_col_blocks; col_block_num++) {
+      i_min = row_block_num * BROWS;
+      j_min = col_block_num * BCOLS;
+
+      for (i = i_min; i < (i_min + BROWS); i++) {
+	A_idx = i * NCOLS + j_min;
+	B_idx = j_min * NROWS + i;
+	for (j = 0; j < BCOLS; j++) {
+	  B[B_idx] = A[A_idx++];
+	  B_idx += NROWS;
+	}
+      }
+    }
+  }
+}
+#elif defined INTRINSICS
 /* This function uses intrinsics to transpose an 8x8 block of doubles
    using a recursive transpose algorithm.  It will not work correctly
    unless both NROWS and NCOLS are multiples of 8. */
@@ -138,43 +175,6 @@ void intrin8x8Transpose(double* restrict A, double* restrict B) {
       _mm512_store_pd(&B_block[6*NROWS], s6);
       _mm512_store_pd(&B_block[7*NROWS], s7);
       #endif
-    }
-  }
-}
-#elif defined BROWS && defined BCOLS
-// this code only works if NROWS is a multiple of BROWS and NCOLS is a multiple of BCOLS
-void blockedTranspose(DTYPE* restrict A, DTYPE* restrict B) {
-  int i, j, i_min, j_min;
-  int num_row_blocks, num_col_blocks;
-  int row_block_num, col_block_num;
-  int A_idx, B_idx;
-
-  num_row_blocks = NROWS / BROWS;
-  num_col_blocks = NCOLS / BCOLS;
-
-  // perform transpose over all blocks
-  for (row_block_num = 0; row_block_num < num_row_blocks; row_block_num++) {
-    for (col_block_num = 0; col_block_num < num_col_blocks; col_block_num++) {
-      i_min = row_block_num * BROWS;
-      j_min = col_block_num * BCOLS;
-
-      for (i = i_min; i < (i_min + BROWS); i++) {
-	A_idx = i * NCOLS + j_min;
-	B_idx = j_min * NROWS + i;
-	for (j = 0; j < BCOLS; j++) {
-	  B[B_idx] = A[A_idx++];
-	  B_idx += NROWS;
-	}
-      }
-    }
-  }
-}
-#else
-void transpose(DTYPE* restrict A, DTYPE* restrict B) {
-  int i, j;
-  for (i = 0; i < NROWS; i++) {
-    for (j = 0; j < NCOLS; j++) {
-      B[j*NROWS + i] = A[i*NCOLS + j];
     }
   }
 }
