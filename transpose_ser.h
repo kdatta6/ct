@@ -9,7 +9,7 @@
 #if defined INTRINSICS
 void intrin8x8Transpose(double * restrict A, double * restrict B);
 #elif defined BROWS && defined BCOLS
-void blockedTranspose(double * restrict A, double * restrict B);
+void blockedTranspose(DTYPE * restrict A, DTYPE * restrict B);
 #else
-void transpose(double * restrict A, double * restrict B);
+void transpose(DTYPE * restrict A, DTYPE * restrict B);
 #endif
