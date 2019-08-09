@@ -70,10 +70,10 @@ int main(int argc, char **argv) {
     (threadArgs+t)->B = B;
     (threadArgs+t)->t = t;
 
-#if defined ROW_NAIVE
-    rc = pthread_create(&threads[t], &attr, &rowThreadedTranspose_naive, (void *)(threadArgs+t));
-#elif defined COL_NAIVE
-    rc = pthread_create(&threads[t], &attr, &colThreadedTranspose_naive, (void *)(threadArgs+t));
+#if defined NAIVE_ROW
+    rc = pthread_create(&threads[t], &attr, &naiveRowThreadedTranspose, (void *)(threadArgs+t));
+#elif defined NAIVE_COL
+    rc = pthread_create(&threads[t], &attr, &naiveColThreadedTranspose, (void *)(threadArgs+t));
 #endif
     if (rc) {
       printf("ERROR; return code from pthread_create() is %d\n", rc);

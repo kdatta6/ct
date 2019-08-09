@@ -18,7 +18,7 @@ CPPFLAGS+=" -DCHECK_ARRAY"
 # Note: if "BLOCKED" is chosen, specify BROWS and BCOLS
 # if "INTRINSICS" is chosen, only double data type is currently supported
 
-# OPT for THREADS can be either "ROW_NAIVE" or "COL_NAIVE"
+# OPT for THREADS can be either "NAIVE_ROW" or "NAIVE_COL"
 
 for DTYPE in "float" "double"
 do
@@ -70,7 +70,7 @@ do
 	    
 	    for MODE in "THREADS"
 	    do
-		for OPT in "ROW_NAIVE" "COL_NAIVE"
+		for OPT in "NAIVE_ROW" "NAIVE_COL"
 		do
 		    for NTHREADS in 1 2
 		    do

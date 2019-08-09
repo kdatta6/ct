@@ -21,7 +21,8 @@ void naiveTranspose(DTYPE* restrict A, DTYPE* restrict B) {
   }
 }
 #elif BLOCKED
-// this code only works if NROWS is a multiple of BROWS and NCOLS is a multiple of BCOLS
+/* This code only works if NROWS is a multiple of BROWS and
+   NCOLS is a multiple of BCOLS. */
 void blockedTranspose(DTYPE* restrict A, DTYPE* restrict B) {
   int i, j, i_min, j_min;
   int num_row_blocks, num_col_blocks;
@@ -183,10 +184,10 @@ void intrin8x8Transpose(double* restrict A, double* restrict B) {
 }
 #endif
 #elif THREADS
-#if defined ROW_NAIVE
-void *rowThreadedTranspose_naive(void *thrArg) {
-#elif defined COL_NAIVE
-void *colThreadedTranspose_naive(void *thrArg) {
+#if defined NAIVE_ROW
+void *naiveRowThreadedTranspose(void *thrArg) {
+#elif defined NAIVE_COL
+void *naiveColThreadedTranspose(void *thrArg) {
 #endif
   DTYPE * restrict A;
   DTYPE * restrict B;
@@ -201,10 +202,10 @@ void *colThreadedTranspose_naive(void *thrArg) {
   tid = (long)(my_thrArg->t);
 
   // divide the rows as evenly as possible among the threads
-#if defined ROW_NAIVE
+#if defined NAIVE_ROW
   num_large_chunks = NROWS % NTHREADS;
   small_chunk_size = NROWS / NTHREADS;
-#elif defined COL_NAIVE
+#elif defined NAIVE_COL
   num_large_chunks = NCOLS % NTHREADS;
   small_chunk_size = NCOLS / NTHREADS;
 #endif
@@ -220,23 +221,23 @@ void *colThreadedTranspose_naive(void *thrArg) {
   }
 
 #if defined PRINT_ARRAYS
-#if defined ROW_NAIVE
-  printf("In rowThreadedTranspose_naive(), tid = %ld, i_min = %d, i_max = %d\n", tid, i_min, i_max);
-#elif defined COL_NAIVE
-  printf("In colThreadedTranspose_naive(), tid = %ld, j_min = %d, j_max = %d\n", tid, j_min, j_max);
+#if defined NAIVE_ROW
+  printf("In naiveRowThreadedTranspose(), tid = %ld, i_min = %d, i_max = %d\n", tid, i_min, i_max);
+#elif defined NAIVE_COL
+  printf("In naiveColThreadedTranspose(), tid = %ld, j_min = %d, j_max = %d\n", tid, j_min, j_max);
 #endif
 #endif
 
-#if defined ROW_NAIVE
+#if defined NAIVE_ROW
   for (i = loop_min; i < loop_max; i++) {
     for (j = 0; j < NCOLS; j++) {
-#elif defined COL_NAIVE
+#elif defined NAIVE_COL
   for (i = 0; i < NROWS; i++) {
     for (j = loop_min; j < loop_max; j++) {
 #endif
       B[j*NROWS + i] = A[i*NCOLS + j];
     }
-  }  
+  }
   
   pthread_exit((void*) tid);
 }

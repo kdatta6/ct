@@ -13,9 +13,9 @@ typedef struct arg {
   long t;
 } threadArg;
 
-#if defined ROW_NAIVE
-void *rowThreadedTranspose_naive(void *t);
-#elif defined COL_NAIVE
-void *colThreadedTranspose_naive(void *t);
+#if defined NAIVE_ROW
+void *naiveRowThreadedTranspose(void *t);
+#elif defined NAIVE_COL
+void *naiveColThreadedTranspose(void *t);
 #endif
 #endif
