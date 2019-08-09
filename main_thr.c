@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #include "transpose_thr.h"
 
@@ -60,6 +61,8 @@ int main(int argc, char **argv) {
   pthread_t threads[NTHREADS];
   threadArg *threadArgs;
   pthread_attr_t attr;
+  struct timeval t1, t2;
+  double elapsedTime;
   long t;
   int rc;
   void *status;
@@ -90,6 +93,9 @@ int main(int argc, char **argv) {
 
   threadArgs = malloc(NTHREADS * sizeof(threadArg));
 
+  // start timer
+  gettimeofday(&t1, NULL);
+
   for (t=0; t<NTHREADS; t++) {
     (threadArgs+t)->A = A;
     (threadArgs+t)->B = B;
@@ -114,6 +120,14 @@ int main(int argc, char **argv) {
       exit(-1);
     }
   }
+
+  // stop timer
+  gettimeofday(&t2, NULL);
+
+  // compute and print the elapsed time in millisec
+  elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;   // us to ms
+  printf("%f ms.\n", elapsedTime);
 
 #if defined PRINT_ARRAYS
   printf("B array:\n");

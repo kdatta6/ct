@@ -7,14 +7,14 @@ AVXFLAGS="-vec-threshold0 -xCORE-AVX512 -qopt-zmm-usage=high"
 
 # only cold cache numbers are collected because L3 cache is too small to get good warm cache results
 
-DTYPE="float"
+DTYPE="double"
 NTHREADS=2
 
 for OPT in "ROW_NAIVE" "COL_NAIVE"
 do
-    for NROWS in 8192
+    for NROWS in 4096
     do
-        for NCOLS in 8192
+        for NCOLS in 4096
         do
 	    PARAM_STR=${DTYPE}_${NROWS}x${NCOLS}_${NTHREADS}t_${OPT}
 	    echo ${PARAM_STR}
@@ -24,7 +24,7 @@ do
 	    ${CC} ${CFLAGS} -DDTYPE=${DTYPE} -D${OPT} -DNTHREADS=${NTHREADS} -DNROWS=${NROWS} -DNCOLS=${NCOLS} -c -o transpose_thr.o transpose_thr.c
 	    ${CC} ${CFLAGS} ${THRFLAGS} -o run_${PARAM_STR} main_thr.o transpose_thr.o
 	    
-	    # run with one thread per core
+	    # run in parallel with one thread per core
 	    numactl -C 0-"$((${NTHREADS}-1))" -l ./run_${PARAM_STR} > ./results_${PARAM_STR}.txt
 
 	    # clean up
