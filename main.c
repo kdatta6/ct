@@ -74,6 +74,10 @@ int main(int argc, char **argv) {
     rc = pthread_create(&threads[t], &attr, &naiveRowThreadedTranspose, (void *)(threadArgs+t));
 #elif defined NAIVE_COL
     rc = pthread_create(&threads[t], &attr, &naiveColThreadedTranspose, (void *)(threadArgs+t));
+#elif defined BLOCKED_ROW
+    rc = pthread_create(&threads[t], &attr, &blockedRowThreadedTranspose, (void *)(threadArgs+t));
+#elif defined BLOCKED_COL
+    rc = pthread_create(&threads[t], &attr, &blockedColThreadedTranspose, (void *)(threadArgs+t));
 #endif
     if (rc) {
       printf("ERROR; return code from pthread_create() is %d\n", rc);

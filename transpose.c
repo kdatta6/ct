@@ -188,12 +188,27 @@ void intrin8x8Transpose(double* restrict A, double* restrict B) {
 void *naiveRowThreadedTranspose(void *thrArg) {
 #elif defined NAIVE_COL
 void *naiveColThreadedTranspose(void *thrArg) {
+#elif defined BLOCKED_ROW
+void *blockedRowThreadedTranspose(void *thrArg) {
+#elif defined BLOCKED_COL
+void *blockedColThreadedTranspose(void *thrArg) {
 #endif
   DTYPE * restrict A;
   DTYPE * restrict B;
   long tid;
   int num_large_chunks, small_chunk_size, large_chunk_size;
   int loop_min, loop_max;
+#if ((defined BLOCKED_ROW) || (defined BLOCKED_COL))
+  int row_block_num, col_block_num;
+  int start_block_num, end_block_num;
+  int A_idx, B_idx;
+  int i_min, j_min;
+#endif
+#if defined BLOCKED_ROW
+  int num_col_blocks;
+#elif defined BLOCKED_COL
+  int num_row_blocks;
+#endif
   int i, j;
 
   threadArg *my_thrArg = (threadArg *)thrArg;
@@ -202,10 +217,10 @@ void *naiveColThreadedTranspose(void *thrArg) {
   tid = (long)(my_thrArg->t);
 
   // divide the rows as evenly as possible among the threads
-#if defined NAIVE_ROW
+#if ((defined NAIVE_ROW) || (defined BLOCKED_ROW))
   num_large_chunks = NROWS % NTHREADS;
   small_chunk_size = NROWS / NTHREADS;
-#elif defined NAIVE_COL
+#elif ((defined NAIVE_COL) || (defined BLOCKED_COL))
   num_large_chunks = NCOLS % NTHREADS;
   small_chunk_size = NCOLS / NTHREADS;
 #endif
@@ -221,9 +236,9 @@ void *naiveColThreadedTranspose(void *thrArg) {
   }
 
 #if defined PRINT_ARRAYS
-#if defined NAIVE_ROW
+#if ((defined NAIVE_ROW) || (defined BLOCKED_ROW))
   printf("In naiveRowThreadedTranspose(), tid = %ld, i_min = %d, i_max = %d\n", tid, i_min, i_max);
-#elif defined NAIVE_COL
+#elif ((defined NAIVE_COL) || (defined BLOCKED_COL))
   printf("In naiveColThreadedTranspose(), tid = %ld, j_min = %d, j_max = %d\n", tid, j_min, j_max);
 #endif
 #endif
@@ -235,9 +250,45 @@ void *naiveColThreadedTranspose(void *thrArg) {
   for (i = 0; i < NROWS; i++) {
     for (j = loop_min; j < loop_max; j++) {
 #endif
+#if ((defined NAIVE_ROW) || (defined NAIVE_COL))
       B[j*NROWS + i] = A[i*NCOLS + j];
     }
   }
+#endif
+
+  // perform transpose over all blocks
+#if defined BLOCKED_ROW
+  num_col_blocks = NCOLS / BCOLS;
+  start_block_num = loop_min / BROWS;
+  end_block_num = loop_max / BROWS;
+#elif defined BLOCKED_COL
+  num_row_blocks = NROWS / BROWS;
+  start_block_num = loop_min / BCOLS;
+  end_block_num = loop_max / BCOLS;
+#endif
+
+#if defined BLOCKED_ROW
+  for (row_block_num = start_block_num; row_block_num < end_block_num; row_block_num++) {
+    for (col_block_num = 0; col_block_num < num_col_blocks; col_block_num++) {
+#elif defined BLOCKED_COL
+  for (row_block_num = 0; row_block_num < num_row_blocks; row_block_num++) {
+    for (col_block_num = start_block_num; col_block_num < end_block_num; col_block_num++) {
+#endif
+#if ((defined BLOCKED_ROW) || (defined BLOCKED_COL))
+      i_min = row_block_num * BROWS;
+      j_min = col_block_num * BCOLS;
+
+      for (i = i_min; i < (i_min + BROWS); i++) {
+	A_idx = i * NCOLS + j_min;
+	B_idx = j_min * NROWS + i;
+	for (j = 0; j < BCOLS; j++) {
+	  B[B_idx] = A[A_idx++];
+	  B_idx += NROWS;
+	}
+      }
+    }
+  }
+#endif
   
   pthread_exit((void*) tid);
 }

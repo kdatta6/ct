@@ -90,6 +90,30 @@ do
 			rm -rf run_${PARAM_STR} util.o transpose.o main.o *~
 		    done
 		done
+
+		for OPT in "BLOCKED_ROW" "BLOCKED_COL"
+		do
+		    for BDIM in 8 16 32 64 128 256
+		    do
+			for NTHREADS in 1 2
+			do
+			    PARAM_STR=${DTYPE}_${NROWS}x${NCOLS}_${BDIM}_${NTHREADS}t_${OPT}
+			    echo ${PARAM_STR}
+			
+			    # compile and link
+			    ${CC} ${CFLAGS} ${CPPFLAGS} -DDTYPE=${DTYPE} -DNROWS=${NROWS} -DNCOLS=${NCOLS} -c -o util.o util.c
+			    ${CC} ${CFLAGS} ${CPPFLAGS} -DDTYPE=${DTYPE} -DNROWS=${NROWS} -DNCOLS=${NCOLS} -DBROWS=${BDIM} -DBCOLS=${BDIM} -D${MODE} -D${OPT} -DNTHREADS=${NTHREADS} -c -o transpose.o transpose.c
+			    ${CC} ${CFLAGS} ${CPPFLAGS} -DDTYPE=${DTYPE} -DNROWS=${NROWS} -DNCOLS=${NCOLS} -D${MODE} -D${OPT} -DNTHREADS=${NTHREADS} -c -o main.o main.c
+			    ${CC} ${CFLAGS} ${CPPFLAGS} ${THRFLAGS} -o run_${PARAM_STR} util.o transpose.o main.o
+			    
+			    # run in parallel with one thread per core
+			    numactl -C 0-"$((${NTHREADS}-1))" -l ./run_${PARAM_STR} > ./results_${PARAM_STR}.txt
+			
+			    # clean up
+			    rm -rf run_${PARAM_STR} util.o transpose.o main.o *~
+			done
+		    done
+		done
 	    done
 	done
     done

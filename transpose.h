@@ -14,8 +14,12 @@ typedef struct arg {
 } threadArg;
 
 #if defined NAIVE_ROW
-void *naiveRowThreadedTranspose(void *t);
+void *naiveRowThreadedTranspose(void *thrArg);
 #elif defined NAIVE_COL
-void *naiveColThreadedTranspose(void *t);
+void *naiveColThreadedTranspose(void *thrArg);
+#elif defined BLOCKED_ROW
+void *blockedRowThreadedTranspose(void *thrArg);
+#elif defined BLOCKED_COL
+void *blockedColThreadedTranspose(void *thrArg);
 #endif
 #endif
