@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#if defined THREADS
+#include <pthread.h>
+#endif
 
 #include "util.h"
-#include "transpose_ser.h"
+#include "transpose.h"
 
 int main(int argc, char **argv) {
   DTYPE *A, *B;
@@ -12,19 +15,26 @@ int main(int argc, char **argv) {
 #endif
   struct timeval t1, t2;
   double elapsedTime;
-#if defined CHECK_ARRAY
+#if defined THREADS
+  pthread_t threads[NTHREADS];
+  threadArg *threadArgs;
+  pthread_attr_t attr;
+  long t;
+  void *status;
   int rc;
 #endif
 
-  // allocate arrays
-#if defined INTRINSICS
-  // make sure arrays are allocated on 64 B boundaries
+#if defined THREADS
+  // initialize and set thread detached attribute
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+  threadArgs = malloc(NTHREADS * sizeof(threadArg));
+#endif
+
+  // allocate arrays on 64 B boundaries (required for intrinsics)
   A = (DTYPE *)aligned_alloc(64, NROWS * NCOLS * sizeof(DTYPE));
   B = (DTYPE *)aligned_alloc(64, NCOLS * NROWS * sizeof(DTYPE));
-#else
-  A = malloc(NROWS * NCOLS * sizeof(DTYPE));
-  B = malloc(NCOLS * NROWS * sizeof(DTYPE));
-#endif
 
   // init A
   initArray(A, NROWS, NCOLS);
@@ -46,12 +56,39 @@ int main(int argc, char **argv) {
   gettimeofday(&t1, NULL);
 
   // transpose
+#if defined SERIAL
 #if defined NAIVE
   naiveTranspose(A, B);
 #elif defined BLOCKED
   blockedTranspose(A, B);
 #elif defined INTRINSICS
   intrin8x8Transpose(A, B);
+#endif
+#elif defined THREADS
+  for (t=0; t<NTHREADS; t++) {
+    (threadArgs+t)->A = A;
+    (threadArgs+t)->B = B;
+    (threadArgs+t)->t = t;
+
+#if defined ROW_NAIVE
+    rc = pthread_create(&threads[t], &attr, &rowThreadedTranspose_naive, (void *)(threadArgs+t));
+#elif defined COL_NAIVE
+    rc = pthread_create(&threads[t], &attr, &colThreadedTranspose_naive, (void *)(threadArgs+t));
+#endif
+    if (rc) {
+      printf("ERROR; return code from pthread_create() is %d\n", rc);
+      exit(-1);
+    }
+  }
+  // free attribute and wait for the other threads
+  pthread_attr_destroy(&attr);
+  for(t=0; t<NTHREADS; t++) {
+    rc = pthread_join(threads[t], &status);
+    if (rc) {
+      printf("ERROR; return code from pthread_join() is %d\n", rc);
+      exit(-1);
+    }
+  }
 #endif
 
   // stop timer
@@ -68,8 +105,7 @@ int main(int argc, char **argv) {
 #endif
 
 #if defined CHECK_ARRAY
-  rc = checkArray(A, B, NROWS, NCOLS);
-  if (rc) {
+  if (checkArray(A, B, NROWS, NCOLS)) {
     printf("TRANSPOSE FAILED\n");
   }
   else {
@@ -81,5 +117,8 @@ int main(int argc, char **argv) {
   free(B);
 #if defined CLEAR_L3_CACHE
   free(C);
+#endif
+#if defined THREADS
+  free(threadArgs);
 #endif
 }
