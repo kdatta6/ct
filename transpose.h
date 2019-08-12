@@ -3,7 +3,7 @@
 void naiveTranspose(DTYPE * restrict A, DTYPE * restrict B);
 #elif defined BLOCKED
 void blockedTranspose(DTYPE * restrict A, DTYPE * restrict B);
-#elif defined INTRINSICS
+#elif ((defined INTRINSICS_noSS) || (defined INTRINSICS_SS))
 void intrin8x8Transpose(double * restrict A, double * restrict B);
 #endif
 #elif defined THREADS
@@ -13,13 +13,5 @@ typedef struct arg {
   long t;
 } threadArg;
 
-#if defined NAIVE_ROW
-void *naiveRowThreadedTranspose(void *thrArg);
-#elif defined NAIVE_COL
-void *naiveColThreadedTranspose(void *thrArg);
-#elif defined BLOCKED_ROW
-void *blockedRowThreadedTranspose(void *thrArg);
-#elif defined BLOCKED_COL
-void *blockedColThreadedTranspose(void *thrArg);
-#endif
+void *threadedTranspose(void *thrArg);
 #endif

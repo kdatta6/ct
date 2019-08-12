@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   naiveTranspose(A, B);
 #elif defined BLOCKED
   blockedTranspose(A, B);
-#elif defined INTRINSICS
+#elif ((defined INTRINSICS_noSS) || (defined INTRINSICS_SS))
   intrin8x8Transpose(A, B);
 #endif
 #elif defined THREADS
@@ -70,15 +70,7 @@ int main(int argc, char **argv) {
     (threadArgs+t)->B = B;
     (threadArgs+t)->t = t;
 
-#if defined NAIVE_ROW
-    rc = pthread_create(&threads[t], &attr, &naiveRowThreadedTranspose, (void *)(threadArgs+t));
-#elif defined NAIVE_COL
-    rc = pthread_create(&threads[t], &attr, &naiveColThreadedTranspose, (void *)(threadArgs+t));
-#elif defined BLOCKED_ROW
-    rc = pthread_create(&threads[t], &attr, &blockedRowThreadedTranspose, (void *)(threadArgs+t));
-#elif defined BLOCKED_COL
-    rc = pthread_create(&threads[t], &attr, &blockedColThreadedTranspose, (void *)(threadArgs+t));
-#endif
+    rc = pthread_create(&threads[t], &attr, &threadedTranspose, (void *)(threadArgs+t));
     if (rc) {
       printf("ERROR; return code from pthread_create() is %d\n", rc);
       exit(-1);
